@@ -388,6 +388,7 @@
   const PROJECT = 'Helios';
   const AREA = 'DataCenterPMS';
   const ITERATION = 'Helios\\Milestone 2';
+  const PROXY = 'https://autumn-snowflake-a9ed.ankur-makhija.workers.dev';
 
   // Pre-fill the stored PAT if previously saved in session
   const stored = sessionStorage.getItem('ado_pat');
@@ -406,14 +407,16 @@
   }
 
   async function adoFetch(url, pat, body) {
+    const proxyUrl = PROXY + '?url=' + encodeURIComponent(url);
     const opts = {
+      method: body ? 'POST' : 'GET',
       headers: {
         'Authorization': 'Basic ' + b64(pat),
         'Content-Type': 'application/json'
       }
     };
-    if (body) { opts.method = 'POST'; opts.body = JSON.stringify(body); }
-    const r = await fetch(url, opts);
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(proxyUrl, opts);
     if (!r.ok) throw new Error('ADO API error: ' + r.status + ' ' + r.statusText);
     return r.json();
   }
