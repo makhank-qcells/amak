@@ -7,135 +7,110 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3248;
-    --accent: #4f8ef7;
-    --done: #34c77b;
-    --active: #f5a623;
-    --new: #6b7db3;
-    --resolved: #5ec4a0;
-    --text: #e8eaf6;
-    --muted: #7b82a8;
-    --font: 'Inter', sans-serif;
-    --mono: 'JetBrains Mono', monospace;
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3248;
+    --accent:#4f8ef7; --accent2:#7c5cbf; --done:#34c77b; --active:#f5a623;
+    --new:#6b7db3; --resolved:#5ec4a0; --warn:#f06565; --text:#e8eaf6; --muted:#7b82a8;
+    --font:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
   }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+  /* ── Header ── */
+  header{padding:16px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .header-left h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+  .header-left p{color:var(--muted);font-size:11px;margin-top:1px}
+  .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pat-input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:6px;width:230px;outline:none}
+  .pat-input:focus{border-color:var(--accent)}
+  .btn{background:var(--accent);color:#fff;border:none;padding:6px 13px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s;white-space:nowrap}
+  .btn:hover{opacity:.85}.btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-ghost{background:var(--surface2);border:1px solid var(--border)}
 
-  header {
-    padding: 20px 40px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  }
-  .header-left h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-  .header-left p { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  /* ── Nav tabs ── */
+  .nav-tabs{padding:0 40px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:0}
+  .nav-tab{padding:10px 18px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;user-select:none}
+  .nav-tab:hover{color:var(--text)}
+  .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
-  .pat-input {
-    background: var(--surface); border: 1px solid var(--border); color: var(--text);
-    font-family: var(--mono); font-size: 12px; padding: 7px 12px; border-radius: 6px; width: 240px; outline: none;
-  }
-  .pat-input:focus { border-color: var(--accent); }
-
-  .btn {
-    background: var(--accent); color: #fff; border: none; padding: 7px 14px;
-    border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: opacity .15s; white-space: nowrap;
-  }
-  .btn:hover { opacity: .85; }
-  .btn:disabled { opacity: .4; cursor: not-allowed; }
-  .btn-ghost { background: var(--surface2); border: 1px solid var(--border); }
-
-  .status-bar {
-    padding: 8px 40px; background: var(--surface); border-bottom: 1px solid var(--border);
-    font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px;
-  }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
-  .dot.loading { background: var(--accent); animation: pulse 1s infinite; }
-  .dot.ok { background: var(--done); }
-  .dot.err { background: #f06565; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  /* ── Status bar ── */
+  .status-bar{padding:7px 40px;background:var(--surface);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block}
+  .dot.loading{background:var(--accent);animation:pulse 1s infinite}
+  .dot.ok{background:var(--done)}.dot.err{background:#f06565}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
   /* ── Filter bar ── */
-  .filter-bar {
-    padding: 12px 40px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  .filter-bar{padding:10px 40px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .filter-bar label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+  .filter-select{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:5px 9px;border-radius:6px;outline:none;cursor:pointer;min-width:130px}
+  .filter-select:focus{border-color:var(--accent)}
+  .filter-divider{width:1px;height:18px;background:var(--border);margin:0 2px}
+  .filter-clear{font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:var(--font);padding:0}
+  .filter-clear:hover{text-decoration:underline}
+  .active-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .filter-chip{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);font-size:11px;padding:2px 7px;border-radius:20px;font-family:var(--mono)}
+  .filter-chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;line-height:1;padding:0}
+
+  /* ── Page panels ── */
+  .page{display:none}.page.active{display:block}
+  main{padding:24px 40px;max-width:1400px;margin:0 auto}
+
+  /* ── KPIs ── */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:24px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden;cursor:default}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+  .kpi.done::before{background:var(--done)}.kpi.act::before{background:var(--active)}.kpi.new-s::before{background:var(--new)}
+  .kpi.warn::before{background:var(--warn)}.kpi.amber::before{background:var(--active)}.kpi.ok::before{background:var(--done)}
+  .kpi-value{font-size:30px;font-weight:700;font-family:var(--mono);line-height:1}
+  .kpi-label{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+  .kpi.warn .kpi-value{color:var(--warn)}.kpi.amber .kpi-value{color:var(--active)}
+
+  /* ── Section title ── */
+  .section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  /* ── Charts ── */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .chart-card h3{font-size:12px;font-weight:600;margin-bottom:12px}
+  .chart-card canvas{width:100%!important}
+
+  /* ── Tables ── */
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px}
+  .table-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .table-header h3{font-size:12px;font-weight:600}
+  .table-count{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;padding:8px 16px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:500}
+  td{padding:8px 16px;border-bottom:1px solid #1e2235;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--surface2)}
+
+  /* ── Hygiene grid ── */
+  .hygiene-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+  .hygiene-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .hygiene-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .hygiene-card-title{font-size:12px;font-weight:600}
+  .hygiene-badge{font-size:18px;font-weight:700;font-family:var(--mono);padding:2px 10px;border-radius:6px}
+  .hygiene-badge.red{color:var(--warn);background:#2a1010}
+  .hygiene-badge.amber{color:var(--active);background:#2a1e08}
+  .hygiene-badge.green{color:var(--done);background:#0a2018}
+  .hygiene-list{max-height:240px;overflow-y:auto}
+  .hygiene-list table{font-size:12px}
+
+  .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--mono)}
+  .badge-New{background:#1e2640;color:var(--new)}.badge-Active{background:#2a2010;color:var(--active)}
+  .badge-Resolved{background:#0f2a22;color:var(--resolved)}.badge-Closed{background:#0f2820;color:var(--done)}
+  .empty{padding:32px;text-align:center;color:var(--muted);font-size:12px}
+  .progress-bar-wrap{background:var(--surface2);border-radius:4px;height:5px;width:100%;min-width:70px}
+  .progress-bar-fill{height:5px;border-radius:4px;background:var(--done);transition:width .4s}
+  .tag{display:inline-block;padding:1px 5px;border-radius:4px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);margin-right:3px;font-family:var(--mono)}
+
+  @media(max-width:900px){
+    .charts-row{grid-template-columns:1fr}
+    main,header,.filter-bar,.status-bar,.nav-tabs{padding-left:16px;padding-right:16px}
   }
-  .filter-bar label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
-  .filter-select {
-    background: var(--bg); border: 1px solid var(--border); color: var(--text);
-    font-family: var(--font); font-size: 12px; padding: 5px 10px; border-radius: 6px;
-    outline: none; cursor: pointer; min-width: 140px;
-  }
-  .filter-select:focus { border-color: var(--accent); }
-  .filter-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
-  .filter-clear { font-size: 11px; color: var(--accent); cursor: pointer; background: none; border: none; font-family: var(--font); padding: 0; }
-  .filter-clear:hover { text-decoration: underline; }
-  .active-filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .filter-chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: var(--surface2); border: 1px solid var(--accent); color: var(--accent);
-    font-size: 11px; padding: 2px 8px; border-radius: 20px; font-family: var(--mono);
-  }
-  .filter-chip button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
-
-  main { padding: 28px 40px; max-width: 1400px; margin: 0 auto; }
-
-  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 28px; }
-  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; position: relative; overflow: hidden; }
-  .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
-  .kpi.done::before { background: var(--done); }
-  .kpi.active::before { background: var(--active); }
-  .kpi.new-s::before { background: var(--new); }
-  .kpi-value { font-size: 32px; font-weight: 700; font-family: var(--mono); line-height: 1; }
-  .kpi-label { font-size: 11px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: .5px; }
-
-  .section-title {
-    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
-    color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
-  }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 28px; }
-  @media (max-width: 900px) {
-    .charts-row { grid-template-columns: 1fr; }
-    main, header, .filter-bar, .status-bar { padding-left: 16px; padding-right: 16px; }
-  }
-
-  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-  .chart-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-  .chart-card canvas { width: 100% !important; }
-
-  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 28px; }
-  .table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-  .table-header h3 { font-size: 13px; font-weight: 600; }
-  .table-count { font-size: 11px; color: var(--muted); font-family: var(--mono); }
-
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 9px 18px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); font-weight: 500; }
-  td { padding: 9px 18px; border-bottom: 1px solid #1e2235; color: var(--text); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
-
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: var(--mono); }
-  .badge-New { background: #1e2640; color: var(--new); }
-  .badge-Active { background: #2a2010; color: var(--active); }
-  .badge-Resolved { background: #0f2a22; color: var(--resolved); }
-  .badge-Closed { background: #0f2820; color: var(--done); }
-
-  .empty { padding: 36px; text-align: center; color: var(--muted); font-size: 13px; }
-
-  .progress-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; width: 100%; min-width: 80px; }
-  .progress-bar-fill { height: 6px; border-radius: 4px; background: var(--done); transition: width .4s; }
-
-  .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; background: var(--surface2); color: var(--muted); border: 1px solid var(--border); margin-right: 3px; font-family: var(--mono); }
-  .tag.uc { border-color: var(--accent2); color: #a88ce0; background: #1a1230; }
 </style>
 </head>
 <body>
@@ -147,56 +122,52 @@
   </div>
   <div class="header-right">
     <input class="pat-input" type="password" id="patInput" placeholder="Personal Access Token" />
-    <button class="btn btn-ghost" id="testBtn" onclick="testPAT()">Test PAT</button>
+    <button class="btn btn-ghost" onclick="testPAT()">Test PAT</button>
     <button class="btn" id="loadBtn" onclick="loadData()">Load Data</button>
   </div>
 </header>
+
+<!-- Nav tabs -->
+<div class="nav-tabs">
+  <div class="nav-tab active" id="tab-progress" onclick="switchTab('progress')">📊 Progress</div>
+  <div class="nav-tab" id="tab-hygiene" onclick="switchTab('hygiene')">🧹 Backlog Hygiene</div>
+</div>
 
 <div class="status-bar">
   <span class="dot" id="statusDot"></span>
   <span id="statusText">Enter your PAT and click Load Data</span>
 </div>
 
-<!-- Filter bar -->
+<!-- Filter bar (progress tab only) -->
 <div class="filter-bar" id="filterBar" style="display:none">
   <label>Sprint</label>
-  <select class="filter-select" id="filterSprint" onchange="applyFilters()">
-    <option value="">All Sprints</option>
-  </select>
+  <select class="filter-select" id="filterSprint" onchange="applyFilters()"><option value="">All Sprints</option></select>
   <div class="filter-divider"></div>
   <label>Assigned To</label>
-  <select class="filter-select" id="filterUser" onchange="applyFilters()">
-    <option value="">All Users</option>
-  </select>
+  <select class="filter-select" id="filterUser" onchange="applyFilters()"><option value="">All Users</option></select>
   <div class="filter-divider"></div>
   <label>Use Case / Tag</label>
-  <select class="filter-select" id="filterTag" onchange="applyFilters()">
-    <option value="">All Tags</option>
-  </select>
+  <select class="filter-select" id="filterTag" onchange="applyFilters()"><option value="">All Tags</option></select>
   <div class="filter-divider"></div>
   <button class="filter-clear" onclick="clearFilters()">✕ Clear filters</button>
   <div class="active-filters" id="activeFilters"></div>
 </div>
 
+<!-- ══════════════ PROGRESS PAGE ══════════════ -->
+<div class="page active" id="page-progress">
 <main>
   <div class="kpi-row">
     <div class="kpi"><div class="kpi-value" id="kpi-total">—</div><div class="kpi-label">Total Stories</div></div>
     <div class="kpi done"><div class="kpi-value" id="kpi-closed">—</div><div class="kpi-label">Closed / Done</div></div>
-    <div class="kpi active"><div class="kpi-value" id="kpi-active">—</div><div class="kpi-label">Active</div></div>
+    <div class="kpi act"><div class="kpi-value" id="kpi-active">—</div><div class="kpi-label">Active</div></div>
     <div class="kpi new-s"><div class="kpi-value" id="kpi-new">—</div><div class="kpi-label">New / Backlog</div></div>
     <div class="kpi done"><div class="kpi-value" id="kpi-pct">—</div><div class="kpi-label">% Complete</div></div>
   </div>
 
   <div class="section-title">Overview</div>
   <div class="charts-row">
-    <div class="chart-card">
-      <h3>Stories by Status</h3>
-      <canvas id="statusChart" height="220"></canvas>
-    </div>
-    <div class="chart-card">
-      <h3>Coverage by Use Case / Tag</h3>
-      <canvas id="coverageChart" height="220"></canvas>
-    </div>
+    <div class="chart-card"><h3>Stories by Status</h3><canvas id="statusChart" height="220"></canvas></div>
+    <div class="chart-card"><h3>Coverage by Use Case / Tag</h3><canvas id="coverageChart" height="220"></canvas></div>
   </div>
 
   <div class="section-title">Per-Person Workload</div>
@@ -211,6 +182,88 @@
     <div id="storiesTable"><div class="empty">Load data to see stories</div></div>
   </div>
 </main>
+</div>
+
+<!-- ══════════════ HYGIENE PAGE ══════════════ -->
+<div class="page" id="page-hygiene">
+<main>
+  <!-- Hygiene KPI strip -->
+  <div class="kpi-row" style="margin-bottom:24px">
+    <div class="kpi warn"><div class="kpi-value" id="h-past-sprint">—</div><div class="kpi-label">In Past Sprints</div></div>
+    <div class="kpi amber"><div class="kpi-value" id="h-no-points">—</div><div class="kpi-label">Missing Story Points</div></div>
+    <div class="kpi warn"><div class="kpi-value" id="h-no-ac">—</div><div class="kpi-label">No Acceptance Criteria</div></div>
+    <div class="kpi amber"><div class="kpi-value" id="h-oversized">—</div><div class="kpi-label">Oversized (&gt;13 pts)</div></div>
+    <div class="kpi ok"><div class="kpi-value" id="h-resolved">—</div><div class="kpi-label">Resolved (pending close)</div></div>
+  </div>
+
+  <div class="section-title">Hygiene Issues — Detail</div>
+  <div class="hygiene-grid">
+
+    <!-- Past Sprints -->
+    <div class="hygiene-card">
+      <div class="hygiene-card-header">
+        <div class="hygiene-card-title">⏪ Work Items in Past Sprints</div>
+        <span class="hygiene-badge red" id="hb-past-sprint">—</span>
+      </div>
+      <div class="hygiene-list" id="hl-past-sprint"><div class="empty">—</div></div>
+    </div>
+
+    <!-- Missing Story Points -->
+    <div class="hygiene-card">
+      <div class="hygiene-card-header">
+        <div class="hygiene-card-title">📏 Missing Story Points</div>
+        <span class="hygiene-badge amber" id="hb-no-points">—</span>
+      </div>
+      <div class="hygiene-list" id="hl-no-points"><div class="empty">—</div></div>
+    </div>
+
+    <!-- No Acceptance Criteria -->
+    <div class="hygiene-card">
+      <div class="hygiene-card-header">
+        <div class="hygiene-card-title">✅ No Acceptance Criteria</div>
+        <span class="hygiene-badge red" id="hb-no-ac">—</span>
+      </div>
+      <div class="hygiene-list" id="hl-no-ac"><div class="empty">—</div></div>
+    </div>
+
+    <!-- Oversized -->
+    <div class="hygiene-card">
+      <div class="hygiene-card-header">
+        <div class="hygiene-card-title">📦 Oversized Stories (&gt;13 pts)</div>
+        <span class="hygiene-badge amber" id="hb-oversized">—</span>
+      </div>
+      <div class="hygiene-list" id="hl-oversized"><div class="empty">—</div></div>
+    </div>
+
+    <!-- Resolved pending close -->
+    <div class="hygiene-card">
+      <div class="hygiene-card-header">
+        <div class="hygiene-card-title">🔵 Resolved — Pending Close</div>
+        <span class="hygiene-badge green" id="hb-resolved">—</span>
+      </div>
+      <div class="hygiene-list" id="hl-resolved"><div class="empty">—</div></div>
+    </div>
+
+    <!-- No owner -->
+    <div class="hygiene-card">
+      <div class="hygiene-card-header">
+        <div class="hygiene-card-title">👤 No Owner (Unassigned)</div>
+        <span class="hygiene-badge red" id="hb-no-owner">—</span>
+      </div>
+      <div class="hygiene-list" id="hl-no-owner"><div class="empty">—</div></div>
+    </div>
+
+  </div>
+
+  <!-- Hygiene by person chart -->
+  <div class="section-title">Hygiene Issues by Person</div>
+  <div class="chart-card" style="margin-bottom:24px">
+    <h3>Issue count per team member (stacked)</h3>
+    <canvas id="hygieneByPersonChart" height="160"></canvas>
+  </div>
+
+</main>
+</div>
 
 <script>
   const ORG = 'qcellsces';
@@ -218,30 +271,40 @@
   const AREA = 'DataCenterPMS';
   const ITERATION = 'Helios\\Milestone 2';
   const PROXY = 'https://autumn-snowflake-a9ed.ankur-makhija.workers.dev';
+  // Sprints considered "past" — update as milestone progresses
+  const PAST_SPRINTS = ['Helios\\Milestone 2\\26M2S1'];
 
-  let allItems = [];
-  let statusChart, coverageChart;
+  let allItems = [], hygieneItems = [];
+  let statusChart, coverageChart, hygieneByPersonChart;
+  let currentTab = 'progress';
 
   const stored = sessionStorage.getItem('ado_pat');
   if (stored) document.getElementById('patInput').value = stored;
 
+  // ── Tab switching ─────────────────────────────────────────
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('page-' + tab).classList.add('active');
+    document.getElementById('filterBar').style.display = (tab === 'progress' && allItems.length) ? 'flex' : 'none';
+  }
+
+  // ── Utilities ─────────────────────────────────────────────
   function setStatus(state, msg) {
     document.getElementById('statusDot').className = 'dot ' + state;
     document.getElementById('statusText').textContent = msg;
   }
-
   function b64(pat) { return btoa(':' + pat); }
 
   async function adoFetch(url, pat, body) {
     const proxyUrl = PROXY + '?url=' + encodeURIComponent(url);
-    const opts = {
-      method: body ? 'POST' : 'GET',
-      headers: { 'Authorization': 'Basic ' + b64(pat), 'Content-Type': 'application/json' }
-    };
+    const opts = { method: body ? 'POST' : 'GET', headers: { 'Authorization': 'Basic ' + b64(pat), 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
     const r = await fetch(proxyUrl, opts);
     const text = await r.text();
-    if (!r.ok) throw new Error(`ADO ${r.status} ${r.statusText}: ${text.slice(0, 400)}`);
+    if (!r.ok) throw new Error(`ADO ${r.status}: ${text.slice(0, 300)}`);
     try { return JSON.parse(text); } catch(e) { throw new Error('Bad JSON: ' + text.slice(0, 200)); }
   }
 
@@ -251,61 +314,60 @@
     setStatus('loading', 'Testing PAT…');
     try {
       const url = `https://dev.azure.com/${ORG}/_apis/projects?api-version=7.1`;
-      const proxyUrl = PROXY + '?url=' + encodeURIComponent(url);
-      const r = await fetch(proxyUrl, { headers: { 'Authorization': 'Basic ' + b64(pat) } });
+      const r = await fetch(PROXY + '?url=' + encodeURIComponent(url), { headers: { 'Authorization': 'Basic ' + b64(pat) } });
       const text = await r.text();
-      if (r.ok) {
-        const data = JSON.parse(text);
-        setStatus('ok', `PAT valid ✓ — ${data.count} project(s): ${data.value.map(p=>p.name).join(', ')}`);
-      } else {
-        setStatus('err', `PAT failed ${r.status}: ${text.slice(0, 200)}`);
-      }
+      if (r.ok) { const d = JSON.parse(text); setStatus('ok', `PAT valid ✓ — ${d.count} project(s): ${d.value.map(p=>p.name).join(', ')}`); }
+      else setStatus('err', `PAT failed ${r.status}: ${text.slice(0,200)}`);
     } catch(e) { setStatus('err', 'Test error: ' + e.message); }
   }
 
+  // ── Load Data ─────────────────────────────────────────────
   async function loadData() {
     const pat = document.getElementById('patInput').value.trim();
     if (!pat) { alert('Please enter your PAT token.'); return; }
     sessionStorage.setItem('ado_pat', pat);
-
     const btn = document.getElementById('loadBtn');
     btn.disabled = true; btn.textContent = 'Loading…';
     setStatus('loading', 'Querying Azure DevOps…');
 
     try {
       const wiqlUrl = `https://dev.azure.com/${ORG}/${PROJECT}/_apis/wit/wiql?api-version=7.1`;
-      const query = {
-        query: `SELECT [System.Id] FROM WorkItems
-                WHERE [System.WorkItemType] = 'User Story'
-                  AND [System.AreaPath] UNDER '${PROJECT}\\${AREA}'
-                  AND [System.IterationPath] UNDER '${ITERATION}'
-                  AND [System.State] <> 'Removed'
-                ORDER BY [System.ChangedDate] DESC`
-      };
-      setStatus('loading', 'Running WIQL query…');
-      const wiqlResult = await adoFetch(wiqlUrl, pat, query);
-      const ids = wiqlResult.workItems.map(w => w.id);
 
-      if (ids.length === 0) {
-        setStatus('err', 'No User Stories found. Check area/iteration path.');
-        btn.disabled = false; btn.textContent = 'Load Data'; return;
+      // Query 1: Milestone 2 user stories (progress tab)
+      setStatus('loading', 'Fetching Milestone 2 stories…');
+      const q1 = { query: `SELECT [System.Id] FROM WorkItems WHERE [System.WorkItemType] = 'User Story' AND [System.AreaPath] UNDER '${PROJECT}\\${AREA}' AND [System.IterationPath] UNDER '${ITERATION}' AND [System.State] <> 'Removed' ORDER BY [System.ChangedDate] DESC` };
+      const r1 = await adoFetch(wiqlUrl, pat, q1);
+      const ids1 = r1.workItems.map(w => w.id);
+
+      // Query 2: ALL active stories in area (for hygiene — no iteration filter)
+      setStatus('loading', 'Fetching hygiene data…');
+      const q2 = { query: `SELECT [System.Id] FROM WorkItems WHERE [System.WorkItemType] = 'User Story' AND [System.AreaPath] UNDER '${PROJECT}\\${AREA}' AND [System.State] NOT IN ('Closed','Resolved','Removed') ORDER BY [System.Id]` };
+      const r2 = await adoFetch(wiqlUrl, pat, q2);
+      const ids2 = r2.workItems.map(w => w.id);
+
+      // Merge unique IDs, batch fetch
+      const allIds = [...new Set([...ids1, ...ids2])];
+      setStatus('loading', `Fetching details for ${allIds.length} items…`);
+
+      const fields = ['System.Id','System.Title','System.State','System.AssignedTo','System.Tags',
+        'System.IterationPath','System.AreaPath','Microsoft.VSTS.Scheduling.StoryPoints',
+        'Microsoft.VSTS.Common.AcceptanceCriteria'];
+      const fetched = [];
+      for (let i = 0; i < allIds.length; i += 200) {
+        const chunk = allIds.slice(i, i+200);
+        const res = await adoFetch(`https://dev.azure.com/${ORG}/${PROJECT}/_apis/wit/workitemsbatch?api-version=7.1`, pat, { ids: chunk, fields });
+        fetched.push(...res.value);
       }
 
-      setStatus('loading', `Found ${ids.length} stories. Fetching details…`);
-      const fields = ['System.Id','System.Title','System.State','System.AssignedTo',
-        'System.Tags','System.IterationPath','System.AreaPath','System.Parent'];
-      allItems = [];
-      for (let i = 0; i < ids.length; i += 200) {
-        const chunk = ids.slice(i, i + 200);
-        const batchUrl = `https://dev.azure.com/${ORG}/${PROJECT}/_apis/wit/workitemsbatch?api-version=7.1`;
-        const res = await adoFetch(batchUrl, pat, { ids: chunk, fields });
-        allItems.push(...res.value);
-      }
+      const byId = Object.fromEntries(fetched.map(i => [i.id, i]));
+      allItems = ids1.map(id => byId[id]).filter(Boolean);
+      hygieneItems = ids2.map(id => byId[id]).filter(Boolean);
 
-      setStatus('ok', `Loaded ${allItems.length} stories · ${new Date().toLocaleTimeString()}`);
+      setStatus('ok', `Loaded ${allItems.length} M2 stories, ${hygieneItems.length} active stories for hygiene · ${new Date().toLocaleTimeString()}`);
       populateFilters();
-      document.getElementById('filterBar').style.display = 'flex';
+      document.getElementById('filterBar').style.display = currentTab === 'progress' ? 'flex' : 'none';
       applyFilters();
+      renderHygiene(hygieneItems);
     } catch(e) {
       setStatus('err', 'Error: ' + e.message);
       console.error(e);
@@ -313,69 +375,45 @@
     btn.disabled = false; btn.textContent = 'Refresh';
   }
 
-  // ── Filters ──────────────────────────────────────────────
-
+  // ── Filters ───────────────────────────────────────────────
   function populateFilters() {
-    // Sprints
-    const sprints = [...new Set(allItems.map(i => {
-      const p = i.fields['System.IterationPath'];
-      return p ? p.split('\\').slice(-1)[0] : null;
-    }).filter(Boolean))].sort();
+    const sprints = [...new Set(allItems.map(i => (i.fields['System.IterationPath']||'').split('\\').slice(-1)[0]).filter(Boolean))].sort();
+    const spSel = document.getElementById('filterSprint');
+    spSel.innerHTML = '<option value="">All Sprints</option>';
+    sprints.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; spSel.appendChild(o); });
 
-    const sprintSel = document.getElementById('filterSprint');
-    sprintSel.innerHTML = '<option value="">All Sprints</option>';
-    sprints.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sprintSel.appendChild(o); });
+    const users = [...new Set(allItems.map(i => { const a=i.fields['System.AssignedTo']; return a?(a.displayName||a):'Unassigned'; }))].sort();
+    const uSel = document.getElementById('filterUser');
+    uSel.innerHTML = '<option value="">All Users</option>';
+    users.forEach(u => { const o=document.createElement('option'); o.value=u; o.textContent=u; uSel.appendChild(o); });
 
-    // Users
-    const users = [...new Set(allItems.map(i => {
-      const a = i.fields['System.AssignedTo'];
-      return a ? (a.displayName || a) : 'Unassigned';
-    }))].sort();
-
-    const userSel = document.getElementById('filterUser');
-    userSel.innerHTML = '<option value="">All Users</option>';
-    users.forEach(u => { const o = document.createElement('option'); o.value = u; o.textContent = u; userSel.appendChild(o); });
-
-    // Tags / Use Cases
     const tagSet = new Set();
-    allItems.forEach(i => {
-      const tags = i.fields['System.Tags'];
-      if (tags) tags.split(';').map(t => t.trim()).filter(Boolean).forEach(t => tagSet.add(t));
-    });
-    const tags = [...tagSet].sort();
-
-    const tagSel = document.getElementById('filterTag');
-    tagSel.innerHTML = '<option value="">All Tags</option>';
-    tags.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; tagSel.appendChild(o); });
+    allItems.forEach(i => { const t=i.fields['System.Tags']; if(t) t.split(';').map(x=>x.trim()).filter(Boolean).forEach(x=>tagSet.add(x)); });
+    const tSel = document.getElementById('filterTag');
+    tSel.innerHTML = '<option value="">All Tags</option>';
+    [...tagSet].sort().forEach(t => { const o=document.createElement('option'); o.value=t; o.textContent=t; tSel.appendChild(o); });
   }
 
   function getFilteredItems() {
     const sprint = document.getElementById('filterSprint').value;
     const user = document.getElementById('filterUser').value;
     const tag = document.getElementById('filterTag').value;
-
     return allItems.filter(i => {
       const f = i.fields;
-      const iterLeaf = f['System.IterationPath'] ? f['System.IterationPath'].split('\\').slice(-1)[0] : '';
-      const assigned = f['System.AssignedTo'] ? (f['System.AssignedTo'].displayName || f['System.AssignedTo']) : 'Unassigned';
-      const tags = f['System.Tags'] ? f['System.Tags'].split(';').map(t => t.trim()).filter(Boolean) : [];
-
-      if (sprint && iterLeaf !== sprint) return false;
+      const iter = (f['System.IterationPath']||'').split('\\').slice(-1)[0];
+      const assigned = f['System.AssignedTo'] ? (f['System.AssignedTo'].displayName||f['System.AssignedTo']) : 'Unassigned';
+      const tags = f['System.Tags'] ? f['System.Tags'].split(';').map(t=>t.trim()).filter(Boolean) : [];
+      if (sprint && iter !== sprint) return false;
       if (user && assigned !== user) return false;
       if (tag && !tags.includes(tag)) return false;
       return true;
     });
   }
 
-  function applyFilters() {
-    updateFilterChips();
-    renderDashboard(getFilteredItems());
-  }
+  function applyFilters() { updateFilterChips(); renderDashboard(getFilteredItems()); }
 
   function clearFilters() {
-    document.getElementById('filterSprint').value = '';
-    document.getElementById('filterUser').value = '';
-    document.getElementById('filterTag').value = '';
+    ['filterSprint','filterUser','filterTag'].forEach(id => document.getElementById(id).value = '');
     applyFilters();
   }
 
@@ -383,116 +421,142 @@
     const sprint = document.getElementById('filterSprint').value;
     const user = document.getElementById('filterUser').value;
     const tag = document.getElementById('filterTag').value;
-    const container = document.getElementById('activeFilters');
-    container.innerHTML = '';
-    if (sprint) container.innerHTML += chip('Sprint: ' + sprint, () => { document.getElementById('filterSprint').value=''; applyFilters(); });
-    if (user) container.innerHTML += chip('User: ' + user, () => { document.getElementById('filterUser').value=''; applyFilters(); });
-    if (tag) container.innerHTML += chip('Tag: ' + tag, () => { document.getElementById('filterTag').value=''; applyFilters(); });
+    const c = document.getElementById('activeFilters');
+    c.innerHTML = '';
+    if (sprint) c.innerHTML += chip('Sprint: '+sprint, ()=>{document.getElementById('filterSprint').value='';applyFilters();});
+    if (user)   c.innerHTML += chip('User: '+user,     ()=>{document.getElementById('filterUser').value='';applyFilters();});
+    if (tag)    c.innerHTML += chip('Tag: '+tag,       ()=>{document.getElementById('filterTag').value='';applyFilters();});
   }
 
   function chip(label, fn) {
-    const id = 'chip_' + Math.random().toString(36).slice(2);
-    setTimeout(() => { const b = document.getElementById(id); if(b) b.onclick = fn; }, 0);
+    const id = 'chip_'+Math.random().toString(36).slice(2);
+    setTimeout(()=>{ const b=document.getElementById(id); if(b) b.onclick=fn; }, 0);
     return `<span class="filter-chip">${label}<button id="${id}">×</button></span>`;
   }
 
-  // ── Render ────────────────────────────────────────────────
-
+  // ── Progress Dashboard ────────────────────────────────────
   function renderDashboard(items) {
-    const total = items.length;
-    const closed = items.filter(i => ['Closed','Resolved'].includes(i.fields['System.State'])).length;
-    const active = items.filter(i => i.fields['System.State'] === 'Active').length;
-    const newCount = items.filter(i => i.fields['System.State'] === 'New').length;
-    const pct = total > 0 ? Math.round((closed / total) * 100) : 0;
+    const total=items.length, closed=items.filter(i=>['Closed','Resolved'].includes(i.fields['System.State'])).length;
+    const active=items.filter(i=>i.fields['System.State']==='Active').length, newCount=items.filter(i=>i.fields['System.State']==='New').length;
+    const pct=total>0?Math.round((closed/total)*100):0;
+    document.getElementById('kpi-total').textContent=total;
+    document.getElementById('kpi-closed').textContent=closed;
+    document.getElementById('kpi-active').textContent=active;
+    document.getElementById('kpi-new').textContent=newCount;
+    document.getElementById('kpi-pct').textContent=pct+'%';
 
-    document.getElementById('kpi-total').textContent = total;
-    document.getElementById('kpi-closed').textContent = closed;
-    document.getElementById('kpi-active').textContent = active;
-    document.getElementById('kpi-new').textContent = newCount;
-    document.getElementById('kpi-pct').textContent = pct + '%';
+    const stateCounts={};
+    items.forEach(i=>{const s=i.fields['System.State'];stateCounts[s]=(stateCounts[s]||0)+1;});
+    const stateLabels=Object.keys(stateCounts);
+    const stateColors=stateLabels.map(s=>({'New':'#6b7db3','Active':'#f5a623','Resolved':'#5ec4a0','Closed':'#34c77b'}[s]||'#4f8ef7'));
+    if(statusChart)statusChart.destroy();
+    statusChart=new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:stateLabels,datasets:[{data:Object.values(stateCounts),backgroundColor:stateColors,borderWidth:0,hoverOffset:6}]},options:{plugins:{legend:{position:'bottom',labels:{color:'#7b82a8',font:{size:11},padding:14}}},cutout:'65%'}});
 
-    // Status chart
-    const stateCounts = {};
-    items.forEach(i => { const s = i.fields['System.State']; stateCounts[s] = (stateCounts[s]||0)+1; });
-    const stateLabels = Object.keys(stateCounts);
-    const stateColors = stateLabels.map(s => ({'New':'#6b7db3','Active':'#f5a623','Resolved':'#5ec4a0','Closed':'#34c77b'}[s]||'#4f8ef7'));
-    if (statusChart) statusChart.destroy();
-    statusChart = new Chart(document.getElementById('statusChart'), {
-      type: 'doughnut',
-      data: { labels: stateLabels, datasets: [{ data: Object.values(stateCounts), backgroundColor: stateColors, borderWidth: 0, hoverOffset: 6 }] },
-      options: { plugins: { legend: { position: 'bottom', labels: { color: '#7b82a8', font: { size: 12 }, padding: 16 } } }, cutout: '65%' }
-    });
+    const tagCounts={};
+    items.forEach(i=>{const t=i.fields['System.Tags'];if(t)t.split(';').map(x=>x.trim()).filter(Boolean).forEach(x=>{tagCounts[x]=(tagCounts[x]||0)+1;});else tagCounts['(untagged)']=(tagCounts['(untagged)']||0)+1;});
+    const sortedTags=Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,14);
+    if(coverageChart)coverageChart.destroy();
+    coverageChart=new Chart(document.getElementById('coverageChart'),{type:'bar',data:{labels:sortedTags.map(t=>t[0]),datasets:[{label:'Stories',data:sortedTags.map(t=>t[1]),backgroundColor:'#4f8ef766',borderColor:'#4f8ef7',borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7b82a8'},grid:{color:'#2e3248'}},y:{ticks:{color:'#e8eaf6',font:{size:11}},grid:{display:false}}}}});
 
-    // Coverage chart
-    const tagCounts = {};
-    items.forEach(i => {
-      const tags = i.fields['System.Tags'];
-      if (tags) tags.split(';').map(t=>t.trim()).filter(Boolean).forEach(t => { tagCounts[t]=(tagCounts[t]||0)+1; });
-      else tagCounts['(untagged)'] = (tagCounts['(untagged)']||0)+1;
-    });
-    const sortedTags = Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,14);
-    if (coverageChart) coverageChart.destroy();
-    coverageChart = new Chart(document.getElementById('coverageChart'), {
-      type: 'bar',
-      data: { labels: sortedTags.map(t=>t[0]), datasets: [{ label: 'Stories', data: sortedTags.map(t=>t[1]), backgroundColor: '#4f8ef766', borderColor: '#4f8ef7', borderWidth: 1, borderRadius: 4 }] },
-      options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#7b82a8' }, grid: { color: '#2e3248' } }, y: { ticks: { color: '#e8eaf6', font: { size: 11 } }, grid: { display: false } } } }
-    });
+    const workload={};
+    items.forEach(i=>{const a=i.fields['System.AssignedTo'];const name=a?(a.displayName||a):'Unassigned';if(!workload[name])workload[name]={total:0,closed:0,active:0,new:0};workload[name].total++;const s=i.fields['System.State'];if(['Closed','Resolved'].includes(s))workload[name].closed++;else if(s==='Active')workload[name].active++;else workload[name].new++;});
+    const wRows=Object.entries(workload).sort((a,b)=>b[1].total-a[1].total);
+    document.getElementById('workloadCount').textContent=wRows.length+' people';
+    document.getElementById('workloadTable').innerHTML=wRows.length===0?'<div class="empty">No data</div>':`<table><thead><tr><th>Assigned To</th><th>Total</th><th>Closed</th><th>Active</th><th>New</th><th>Progress</th></tr></thead><tbody>${wRows.map(([name,d])=>{const p=d.total>0?Math.round((d.closed/d.total)*100):0;return`<tr><td style="font-weight:500">${name}</td><td>${d.total}</td><td style="color:var(--done)">${d.closed}</td><td style="color:var(--active)">${d.active}</td><td style="color:var(--new)">${d.new}</td><td><div style="display:flex;align-items:center;gap:7px"><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${p}%"></div></div><span style="font-size:11px;color:var(--muted);font-family:var(--mono);min-width:28px">${p}%</span></div></td></tr>`;}).join('')}</tbody></table>`;
 
-    // Workload
-    const workload = {};
-    items.forEach(i => {
-      const a = i.fields['System.AssignedTo'];
-      const name = a ? (a.displayName || a) : 'Unassigned';
-      if (!workload[name]) workload[name] = { total:0, closed:0, active:0, new:0 };
-      workload[name].total++;
-      const s = i.fields['System.State'];
-      if (['Closed','Resolved'].includes(s)) workload[name].closed++;
-      else if (s==='Active') workload[name].active++;
-      else workload[name].new++;
-    });
-    const wRows = Object.entries(workload).sort((a,b)=>b[1].total-a[1].total);
-    document.getElementById('workloadCount').textContent = wRows.length + ' people';
-    document.getElementById('workloadTable').innerHTML = wRows.length === 0
-      ? '<div class="empty">No data</div>'
-      : `<table><thead><tr><th>Assigned To</th><th>Total</th><th>Closed</th><th>Active</th><th>New</th><th>Progress</th></tr></thead><tbody>
-        ${wRows.map(([name, d]) => {
-          const p = d.total > 0 ? Math.round((d.closed/d.total)*100) : 0;
-          return `<tr><td style="font-weight:500">${name}</td><td>${d.total}</td>
-            <td style="color:var(--done)">${d.closed}</td>
-            <td style="color:var(--active)">${d.active}</td>
-            <td style="color:var(--new)">${d.new}</td>
-            <td><div style="display:flex;align-items:center;gap:8px">
-              <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${p}%"></div></div>
-              <span style="font-size:11px;color:var(--muted);font-family:var(--mono);min-width:30px">${p}%</span>
-            </div></td></tr>`;
-        }).join('')}</tbody></table>`;
+    const sorted=[...items].sort((a,b)=>({'Active':0,'New':1,'Resolved':2,'Closed':3}[a.fields['System.State']]??9)-({'Active':0,'New':1,'Resolved':2,'Closed':3}[b.fields['System.State']]??9));
+    document.getElementById('storiesCount').textContent=sorted.length+' stories';
+    document.getElementById('storiesTable').innerHTML=sorted.length===0?'<div class="empty">No stories match the current filters</div>':`<table><thead><tr><th>ID</th><th>Title</th><th>State</th><th>Assigned To</th><th>Tags</th><th>Sprint</th></tr></thead><tbody>${sorted.map(i=>{const f=i.fields,state=f['System.State'],a=f['System.AssignedTo'],name=a?(a.displayName||a):'—',tags=f['System.Tags']?f['System.Tags'].split(';').map(t=>t.trim()).filter(Boolean):[],iter=f['System.IterationPath']?f['System.IterationPath'].split('\\').slice(-1)[0]:'—',url=`https://dev.azure.com/${ORG}/${PROJECT}/_workitems/edit/${i.id}`;return`<tr><td><a href="${url}" target="_blank" style="color:var(--accent);font-family:var(--mono);font-size:11px;text-decoration:none">#${i.id}</a></td><td style="max-width:280px">${f['System.Title']}</td><td><span class="badge badge-${state}">${state}</span></td><td>${name}</td><td>${tags.map(t=>`<span class="tag">${t}</span>`).join('')||'—'}</td><td style="color:var(--muted);font-size:11px">${iter}</td></tr>`;}).join('')}</tbody></table>`;
+  }
 
-    // Stories table
-    const sorted = [...items].sort((a,b) => {
-      const order = {'Active':0,'New':1,'Resolved':2,'Closed':3};
-      return (order[a.fields['System.State']]??9)-(order[b.fields['System.State']]??9);
-    });
-    document.getElementById('storiesCount').textContent = sorted.length + ' stories';
-    document.getElementById('storiesTable').innerHTML = sorted.length === 0
-      ? '<div class="empty">No stories match the current filters</div>'
-      : `<table><thead><tr><th>ID</th><th>Title</th><th>State</th><th>Assigned To</th><th>Tags</th><th>Sprint</th></tr></thead><tbody>
-        ${sorted.map(i => {
-          const f = i.fields;
-          const state = f['System.State'];
-          const a = f['System.AssignedTo'];
-          const name = a ? (a.displayName || a) : '—';
-          const tags = f['System.Tags'] ? f['System.Tags'].split(';').map(t=>t.trim()).filter(Boolean) : [];
-          const iter = f['System.IterationPath'] ? f['System.IterationPath'].split('\\').slice(-1)[0] : '—';
-          const adoUrl = `https://dev.azure.com/${ORG}/${PROJECT}/_workitems/edit/${i.id}`;
+  // ── Hygiene Dashboard ─────────────────────────────────────
+  function renderHygiene(items) {
+    // Classify
+    const pastSprint   = items.filter(i => PAST_SPRINTS.includes(i.fields['System.IterationPath']));
+    const noPoints     = items.filter(i => !i.fields['Microsoft.VSTS.Scheduling.StoryPoints']);
+    const noAC         = items.filter(i => !i.fields['Microsoft.VSTS.Common.AcceptanceCriteria'] || i.fields['Microsoft.VSTS.Common.AcceptanceCriteria'].trim() === '');
+    const oversized    = items.filter(i => (i.fields['Microsoft.VSTS.Scheduling.StoryPoints']||0) > 13);
+    const allWithState = [...allItems]; // use full M2 set for resolved
+    const resolved     = allWithState.filter(i => i.fields['System.State'] === 'Resolved');
+    const noOwner      = items.filter(i => !i.fields['System.AssignedTo']);
+
+    // KPI strip
+    document.getElementById('h-past-sprint').textContent = pastSprint.length;
+    document.getElementById('h-no-points').textContent   = noPoints.length;
+    document.getElementById('h-no-ac').textContent       = noAC.length;
+    document.getElementById('h-oversized').textContent   = oversized.length;
+    document.getElementById('h-resolved').textContent    = resolved.length;
+
+    // Cards
+    const sets = [
+      { id:'past-sprint', data:pastSprint, cols:['Title','Sprint','Assigned To','State'] },
+      { id:'no-points',   data:noPoints,   cols:['Title','Sprint','Assigned To','State'] },
+      { id:'no-ac',       data:noAC,       cols:['Title','Sprint','Assigned To','State'] },
+      { id:'oversized',   data:oversized,  cols:['Title','Pts','Assigned To','State'] },
+      { id:'resolved',    data:resolved,   cols:['Title','Sprint','Assigned To'] },
+      { id:'no-owner',    data:noOwner,    cols:['Title','Sprint','State'] },
+    ];
+    document.getElementById('hb-no-owner').textContent = noOwner.length;
+    document.getElementById('h-resolved') && (document.getElementById('h-resolved').textContent = resolved.length);
+
+    sets.forEach(({id, data, cols}) => {
+      document.getElementById('hb-'+id) && (document.getElementById('hb-'+id).textContent = data.length);
+      const el = document.getElementById('hl-'+id);
+      if (!el) return;
+      if (data.length === 0) { el.innerHTML = '<div class="empty" style="padding:16px;font-size:11px">✓ No issues</div>'; return; }
+      const adoLink = (i) => `https://dev.azure.com/${ORG}/${PROJECT}/_workitems/edit/${i.id}`;
+      el.innerHTML = `<table><thead><tr><th>ID</th><th>Title</th><th>Assigned To</th><th>${id==='oversized'?'Pts':'Sprint'}</th><th>State</th></tr></thead><tbody>
+        ${data.slice(0,50).map(i => {
+          const f=i.fields, a=f['System.AssignedTo'], name=a?(a.displayName||a):'—';
+          const iter=(f['System.IterationPath']||'').split('\\').slice(-1)[0]||'—';
+          const pts=f['Microsoft.VSTS.Scheduling.StoryPoints']||'—';
+          const state=f['System.State'];
           return `<tr>
-            <td><a href="${adoUrl}" target="_blank" style="color:var(--accent);font-family:var(--mono);font-size:12px;text-decoration:none">#${i.id}</a></td>
-            <td style="max-width:300px">${f['System.Title']}</td>
+            <td><a href="${adoLink(i)}" target="_blank" style="color:var(--accent);font-family:var(--mono);font-size:11px;text-decoration:none">#${i.id}</a></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f['System.Title']}</td>
+            <td style="white-space:nowrap">${name}</td>
+            <td style="font-family:var(--mono);font-size:11px">${id==='oversized'?pts:iter}</td>
             <td><span class="badge badge-${state}">${state}</span></td>
-            <td>${name}</td>
-            <td>${tags.map(t=>`<span class="tag uc">${t}</span>`).join('')||'—'}</td>
-            <td style="color:var(--muted);font-size:12px">${iter}</td>
           </tr>`;
-        }).join('')}</tbody></table>`;
+        }).join('')}
+      </tbody></table>`;
+    });
+
+    // Hygiene by person stacked bar
+    const personIssues = {};
+    const addIssue = (list, type) => list.forEach(i => {
+      const a=i.fields['System.AssignedTo']; const name=a?(a.displayName||a):'Unassigned';
+      if(!personIssues[name]) personIssues[name]={pastSprint:0,noPoints:0,noAC:0,oversized:0,noOwner:0};
+      personIssues[name][type]++;
+    });
+    addIssue(pastSprint,'pastSprint'); addIssue(noPoints,'noPoints');
+    addIssue(noAC,'noAC'); addIssue(oversized,'oversized'); addIssue(noOwner,'noOwner');
+
+    const people = Object.keys(personIssues).sort((a,b)=>{
+      const sum=x=>Object.values(x).reduce((a,b)=>a+b,0);
+      return sum(personIssues[b])-sum(personIssues[a]);
+    });
+
+    if(hygieneByPersonChart) hygieneByPersonChart.destroy();
+    hygieneByPersonChart = new Chart(document.getElementById('hygieneByPersonChart'), {
+      type: 'bar',
+      data: {
+        labels: people,
+        datasets: [
+          { label:'Past Sprint',        data:people.map(p=>personIssues[p].pastSprint), backgroundColor:'#4f8ef7aa', borderRadius:3 },
+          { label:'Missing Points',     data:people.map(p=>personIssues[p].noPoints),   backgroundColor:'#f5a623aa', borderRadius:3 },
+          { label:'No Accept. Criteria',data:people.map(p=>personIssues[p].noAC),       backgroundColor:'#f0656599', borderRadius:3 },
+          { label:'Oversized',          data:people.map(p=>personIssues[p].oversized),  backgroundColor:'#7c5cbfaa', borderRadius:3 },
+        ]
+      },
+      options: {
+        plugins: { legend: { position:'bottom', labels:{ color:'#7b82a8', font:{size:11}, padding:12 } } },
+        scales: {
+          x: { stacked:true, ticks:{color:'#e8eaf6',font:{size:11}}, grid:{display:false} },
+          y: { stacked:true, ticks:{color:'#7b82a8'}, grid:{color:'#2e3248'} }
+        }
+      }
+    });
   }
 
   if (stored) loadData();
