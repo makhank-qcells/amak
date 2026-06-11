@@ -321,6 +321,7 @@
   </div>
   <div class="header-right">
     <input class="pat-input" type="password" id="patInput" placeholder="Paste your ADO Personal Access Token" />
+    <button class="btn" id="testBtn" onclick="testPAT()" style="background:var(--surface2);border:1px solid var(--border)">Test PAT</button>
     <button class="btn" id="loadBtn" onclick="loadData()">Load Data</button>
   </div>
 </header>
@@ -417,8 +418,31 @@
     };
     if (body) opts.body = JSON.stringify(body);
     const r = await fetch(proxyUrl, opts);
-    if (!r.ok) throw new Error('ADO API error: ' + r.status + ' ' + r.statusText);
-    return r.json();
+    const text = await r.text();
+    if (!r.ok) throw new Error(`ADO ${r.status} ${r.statusText}: ${text.slice(0,400)}`);
+    try { return JSON.parse(text); } catch(e) { throw new Error('Bad JSON from proxy: ' + text.slice(0,200)); }
+  }
+
+  async function testPAT() {
+    const pat = document.getElementById('patInput').value.trim();
+    if (!pat) { alert('Paste your PAT first.'); return; }
+    setStatus('loading', 'Testing PAT…');
+    try {
+      const url = `https://dev.azure.com/${ORG}/_apis/projects?api-version=7.1`;
+      const proxyUrl = PROXY + '?url=' + encodeURIComponent(url);
+      const r = await fetch(proxyUrl, {
+        headers: { 'Authorization': 'Basic ' + b64(pat), 'Content-Type': 'application/json' }
+      });
+      const text = await r.text();
+      if (r.ok) {
+        const data = JSON.parse(text);
+        setStatus('ok', `PAT valid ✓ — found ${data.count} project(s): ${data.value.map(p=>p.name).join(', ')}`);
+      } else {
+        setStatus('err', `PAT test failed ${r.status}: ${text.slice(0,300)}`);
+      }
+    } catch(e) {
+      setStatus('err', 'Test error: ' + e.message);
+    }
   }
 
   async function loadData() {
