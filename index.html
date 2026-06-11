@@ -1,5 +1,652 @@
 <!DOCTYPE html>
-   <html>
-   <head><title>My Team Dashboard</title></head>
-   <body><h1>Hello, team!</h1></body>
-   </html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataCenterPMS — Milestone 2 Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --accent: #4f8ef7;
+    --accent2: #7c5cbf;
+    --done: #34c77b;
+    --active: #f5a623;
+    --new: #6b7db3;
+    --closed: #34c77b;
+    --resolved: #5ec4a0;
+    --text: #e8eaf6;
+    --muted: #7b82a8;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-left h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+
+  .header-left p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 3px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pat-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    width: 260px;
+    outline: none;
+  }
+  .pat-input:focus { border-color: var(--accent); }
+
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .status-bar {
+    padding: 10px 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+  }
+  .dot.loading { background: var(--accent); animation: pulse 1s infinite; }
+  .dot.ok { background: var(--done); }
+  .dot.err { background: #f06565; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  main {
+    padding: 32px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+
+  .kpi.done::before { background: var(--done); }
+  .kpi.active::before { background: var(--active); }
+  .kpi.new::before { background: var(--new); }
+  .kpi.closed::before { background: var(--closed); }
+
+  .kpi-value {
+    font-size: 36px;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .kpi-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .charts-row { grid-template-columns: 1fr; }
+    main { padding: 20px; }
+    header { padding: 20px; }
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .chart-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .chart-card canvas { width: 100% !important; }
+
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .table-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 20px;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  td {
+    padding: 10px 20px;
+    border-bottom: 1px solid #1e2235;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--mono);
+  }
+
+  .badge-New { background: #1e2640; color: var(--new); }
+  .badge-Active { background: #2a2010; color: var(--active); }
+  .badge-Resolved { background: #0f2a22; color: var(--resolved); }
+  .badge-Closed { background: #0f2820; color: var(--done); }
+
+  .empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .progress-bar-wrap {
+    background: var(--surface2);
+    border-radius: 4px;
+    height: 6px;
+    width: 100%;
+    min-width: 80px;
+  }
+
+  .progress-bar-fill {
+    height: 6px;
+    border-radius: 4px;
+    background: var(--done);
+    transition: width .4s;
+  }
+
+  .workload-name {
+    font-weight: 500;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    margin-right: 4px;
+    font-family: var(--mono);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>DataCenterPMS — Milestone 2</h1>
+    <p>Azure DevOps · Helios · Area: DataCenterPMS</p>
+  </div>
+  <div class="header-right">
+    <input class="pat-input" type="password" id="patInput" placeholder="Paste your ADO Personal Access Token" />
+    <button class="btn" id="loadBtn" onclick="loadData()">Load Data</button>
+  </div>
+</header>
+
+<div class="status-bar">
+  <span class="dot" id="statusDot"></span>
+  <span id="statusText">Enter your PAT token and click Load Data</span>
+</div>
+
+<main>
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-label">Total User Stories</div>
+    </div>
+    <div class="kpi done">
+      <div class="kpi-value" id="kpi-closed">—</div>
+      <div class="kpi-label">Closed / Done</div>
+    </div>
+    <div class="kpi active">
+      <div class="kpi-value" id="kpi-active">—</div>
+      <div class="kpi-label">Active</div>
+    </div>
+    <div class="kpi new">
+      <div class="kpi-value" id="kpi-new">—</div>
+      <div class="kpi-label">New / Backlog</div>
+    </div>
+    <div class="kpi closed">
+      <div class="kpi-value" id="kpi-pct">—</div>
+      <div class="kpi-label">% Complete</div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="section-title">Overview</div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>User Stories by Status</h3>
+      <canvas id="statusChart" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Coverage by Feature / Tag</h3>
+      <canvas id="coverageChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- Workload -->
+  <div class="section-title">Per-Person Workload</div>
+  <div class="table-card" style="margin-bottom:32px">
+    <h3>Assigned To — Story Count &amp; Completion</h3>
+    <div id="workloadTable"><div class="empty">Load data to see workload</div></div>
+  </div>
+
+  <!-- Stories table -->
+  <div class="section-title">User Stories</div>
+  <div class="table-card">
+    <h3>All User Stories · Milestone 2</h3>
+    <div id="storiesTable"><div class="empty">Load data to see stories</div></div>
+  </div>
+</main>
+
+<script>
+  const ORG = 'qcellsces';
+  const PROJECT = 'Helios';
+  const AREA = 'DataCenterPMS';
+  const ITERATION = 'Helios\\Milestone 2';
+
+  // Pre-fill the stored PAT if previously saved in session
+  const stored = sessionStorage.getItem('ado_pat');
+  if (stored) document.getElementById('patInput').value = stored;
+
+  let statusChart, coverageChart;
+
+  function setStatus(state, msg) {
+    const dot = document.getElementById('statusDot');
+    dot.className = 'dot ' + state;
+    document.getElementById('statusText').textContent = msg;
+  }
+
+  function b64(pat) {
+    return btoa(':' + pat);
+  }
+
+  async function adoFetch(url, pat, body) {
+    const opts = {
+      headers: {
+        'Authorization': 'Basic ' + b64(pat),
+        'Content-Type': 'application/json'
+      }
+    };
+    if (body) { opts.method = 'POST'; opts.body = JSON.stringify(body); }
+    const r = await fetch(url, opts);
+    if (!r.ok) throw new Error('ADO API error: ' + r.status + ' ' + r.statusText);
+    return r.json();
+  }
+
+  async function loadData() {
+    const pat = document.getElementById('patInput').value.trim();
+    if (!pat) { alert('Please enter your PAT token.'); return; }
+    sessionStorage.setItem('ado_pat', pat);
+
+    const btn = document.getElementById('loadBtn');
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    setStatus('loading', 'Querying Azure DevOps…');
+
+    try {
+      // Step 1: WIQL query for all User Stories in Milestone 2 / DataCenterPMS
+      const wiqlUrl = `https://dev.azure.com/${ORG}/${PROJECT}/_apis/wit/wiql?api-version=7.1`;
+      const query = {
+        query: `SELECT [System.Id] FROM WorkItems
+                WHERE [System.WorkItemType] = 'User Story'
+                  AND [System.AreaPath] UNDER '${PROJECT}\\${AREA}'
+                  AND [System.IterationPath] UNDER '${ITERATION}'
+                  AND [System.State] <> 'Removed'
+                ORDER BY [System.ChangedDate] DESC`
+      };
+
+      setStatus('loading', 'Running WIQL query…');
+      const wiqlResult = await adoFetch(wiqlUrl, pat, query);
+      const ids = wiqlResult.workItems.map(w => w.id);
+
+      if (ids.length === 0) {
+        setStatus('err', 'No User Stories found. Check area/iteration path.');
+        btn.disabled = false; btn.textContent = 'Load Data';
+        return;
+      }
+
+      setStatus('loading', `Found ${ids.length} stories. Fetching details…`);
+
+      // Step 2: Batch fetch details (max 200 per call)
+      const fields = [
+        'System.Id','System.Title','System.State',
+        'System.AssignedTo','System.Tags',
+        'System.IterationPath','Microsoft.VSTS.Common.Priority',
+        'System.AreaPath','System.Parent'
+      ];
+      const allItems = [];
+      for (let i = 0; i < ids.length; i += 200) {
+        const chunk = ids.slice(i, i + 200);
+        const batchUrl = `https://dev.azure.com/${ORG}/${PROJECT}/_apis/wit/workitemsbatch?api-version=7.1`;
+        const batchBody = { ids: chunk, fields };
+        const batchResult = await adoFetch(batchUrl, pat, batchBody);
+        allItems.push(...batchResult.value);
+      }
+
+      setStatus('ok', `Loaded ${allItems.length} user stories · ${new Date().toLocaleTimeString()}`);
+      renderDashboard(allItems);
+    } catch (e) {
+      setStatus('err', 'Error: ' + e.message);
+      console.error(e);
+    }
+
+    btn.disabled = false; btn.textContent = 'Refresh';
+  }
+
+  function renderDashboard(items) {
+    // --- KPIs ---
+    const total = items.length;
+    const closed = items.filter(i => ['Closed','Resolved'].includes(i.fields['System.State'])).length;
+    const active = items.filter(i => i.fields['System.State'] === 'Active').length;
+    const newCount = items.filter(i => i.fields['System.State'] === 'New').length;
+    const pct = total > 0 ? Math.round((closed / total) * 100) : 0;
+
+    document.getElementById('kpi-total').textContent = total;
+    document.getElementById('kpi-closed').textContent = closed;
+    document.getElementById('kpi-active').textContent = active;
+    document.getElementById('kpi-new').textContent = newCount;
+    document.getElementById('kpi-pct').textContent = pct + '%';
+
+    // --- Status Chart ---
+    const stateCounts = {};
+    items.forEach(i => {
+      const s = i.fields['System.State'];
+      stateCounts[s] = (stateCounts[s] || 0) + 1;
+    });
+
+    const stateLabels = Object.keys(stateCounts);
+    const stateColors = stateLabels.map(s => ({
+      'New': '#6b7db3', 'Active': '#f5a623',
+      'Resolved': '#5ec4a0', 'Closed': '#34c77b'
+    }[s] || '#4f8ef7'));
+
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: stateLabels,
+        datasets: [{ data: Object.values(stateCounts), backgroundColor: stateColors, borderWidth: 0, hoverOffset: 6 }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#7b82a8', font: { size: 12 }, padding: 16 } }
+        },
+        cutout: '65%'
+      }
+    });
+
+    // --- Coverage Chart (by tag) ---
+    const tagCounts = {};
+    items.forEach(i => {
+      const tags = i.fields['System.Tags'];
+      if (tags) {
+        tags.split(';').map(t => t.trim()).filter(Boolean).forEach(t => {
+          tagCounts[t] = (tagCounts[t] || 0) + 1;
+        });
+      } else {
+        tagCounts['(untagged)'] = (tagCounts['(untagged)'] || 0) + 1;
+      }
+    });
+
+    const sortedTags = Object.entries(tagCounts).sort((a,b) => b[1]-a[1]).slice(0, 12);
+
+    if (coverageChart) coverageChart.destroy();
+    coverageChart = new Chart(document.getElementById('coverageChart'), {
+      type: 'bar',
+      data: {
+        labels: sortedTags.map(t => t[0]),
+        datasets: [{
+          label: 'Stories',
+          data: sortedTags.map(t => t[1]),
+          backgroundColor: '#4f8ef766',
+          borderColor: '#4f8ef7',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#7b82a8' }, grid: { color: '#2e3248' } },
+          y: { ticks: { color: '#e8eaf6', font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    // --- Workload table ---
+    const workload = {};
+    items.forEach(i => {
+      const assigned = i.fields['System.AssignedTo'];
+      const name = assigned ? (assigned.displayName || assigned) : 'Unassigned';
+      if (!workload[name]) workload[name] = { total: 0, closed: 0, active: 0, new: 0 };
+      workload[name].total++;
+      const s = i.fields['System.State'];
+      if (['Closed','Resolved'].includes(s)) workload[name].closed++;
+      else if (s === 'Active') workload[name].active++;
+      else workload[name].new++;
+    });
+
+    const wRows = Object.entries(workload).sort((a,b) => b[1].total - a[1].total);
+    const wHtml = wRows.length === 0 ? '<div class="empty">No assignment data</div>' : `
+      <table>
+        <thead><tr>
+          <th>Assigned To</th>
+          <th>Total</th>
+          <th>Closed</th>
+          <th>Active</th>
+          <th>New</th>
+          <th>Progress</th>
+        </tr></thead>
+        <tbody>
+          ${wRows.map(([name, d]) => {
+            const pct = d.total > 0 ? Math.round((d.closed/d.total)*100) : 0;
+            return `<tr>
+              <td class="workload-name">${name}</td>
+              <td>${d.total}</td>
+              <td style="color:var(--done)">${d.closed}</td>
+              <td style="color:var(--active)">${d.active}</td>
+              <td style="color:var(--new)">${d.new}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" style="width:${pct}%"></div>
+                  </div>
+                  <span style="font-size:11px;color:var(--muted);font-family:var(--mono);min-width:32px">${pct}%</span>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+    document.getElementById('workloadTable').innerHTML = wHtml;
+
+    // --- Stories table ---
+    const sorted = [...items].sort((a,b) => {
+      const order = {'Active':0,'New':1,'Resolved':2,'Closed':3};
+      return (order[a.fields['System.State']]??9) - (order[b.fields['System.State']]??9);
+    });
+
+    const sHtml = `
+      <table>
+        <thead><tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>State</th>
+          <th>Assigned To</th>
+          <th>Tags</th>
+          <th>Iteration</th>
+        </tr></thead>
+        <tbody>
+          ${sorted.map(i => {
+            const f = i.fields;
+            const state = f['System.State'];
+            const assigned = f['System.AssignedTo'];
+            const name = assigned ? (assigned.displayName || assigned) : '—';
+            const tags = f['System.Tags'] ? f['System.Tags'].split(';').map(t=>t.trim()).filter(Boolean) : [];
+            const iter = f['System.IterationPath'] ? f['System.IterationPath'].split('\\').slice(-1)[0] : '—';
+            const adoUrl = `https://dev.azure.com/${ORG}/${PROJECT}/_workitems/edit/${i.id}`;
+            return `<tr>
+              <td><a href="${adoUrl}" target="_blank" style="color:var(--accent);font-family:var(--mono);font-size:12px;text-decoration:none">#${i.id}</a></td>
+              <td style="max-width:320px">${f['System.Title']}</td>
+              <td><span class="badge badge-${state}">${state}</span></td>
+              <td>${name}</td>
+              <td>${tags.map(t=>`<span class="tag">${t}</span>`).join('') || '—'}</td>
+              <td style="color:var(--muted);font-size:12px">${iter}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+    document.getElementById('storiesTable').innerHTML = sHtml;
+  }
+
+  // Auto-load if PAT already in session
+  if (stored) loadData();
+</script>
+</body>
+</html>
